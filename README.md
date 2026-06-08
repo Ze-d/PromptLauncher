@@ -82,7 +82,7 @@ cargo test       # 运行测试
 
 ```bash
 pnpm tauri build
-# 产物 → src-tauri/target/release/bundle/nsis/Prompt Launcher_0.1.0_x64-setup.exe
+# 产物 → src-tauri/target/release/bundle/nsis/Prompt Launcher_0.0.1_x64-setup.exe
 ```
 
 ---
@@ -195,7 +195,7 @@ PromptLauncher/
 
 ---
 
-## 非目标 / Non-Goals (v0.1.0)
+## 非目标 / Non-Goals (v0.0.1)
 
 - ❌ AI 聊天客户端 / AI chat client
 - ❌ 云同步 / Cloud sync

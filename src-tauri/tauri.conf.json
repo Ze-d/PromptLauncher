@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nickolay/tauri-docs/refs/heads/v2/src/content/docs/_schema/config.schema.json",
   "productName": "Prompt Launcher",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "identifier": "com.promptlauncher.app",
   "build": {
     "beforeDevCommand": "pnpm dev",

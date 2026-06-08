@@ -1,6 +1,6 @@
 [package]
 name = "prompt-launcher"
-version = "0.1.0"
+version = "0.0.1"
 description = "A lightweight local-first desktop prompt launcher"
 authors = ["you"]
 edition = "2021"

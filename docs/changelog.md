@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0.0 (MVP)
+## v0.0.1 (MVP)
 
 ### 功能
 
