@@ -50,7 +50,21 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
-        run: pnpm tauri build
+        shell: pwsh
+        run: |
+          $maxRetries = 3
+          for ($i = 1; $i -le $maxRetries; $i++) {
+            try {
+              pnpm tauri build
+              if ($LASTEXITCODE -eq 0) { break }
+            } catch {}
+            if ($i -eq $maxRetries) {
+              Write-Error "Build failed after $maxRetries attempts"
+              exit 1
+            }
+            Write-Warning "Build attempt $i failed, retrying in 30s..."
+            Start-Sleep -Seconds 30
+          }
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
