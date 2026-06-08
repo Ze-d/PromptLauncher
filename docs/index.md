@@ -23,6 +23,10 @@
 - [TDD 指南](testing/tdd-guide.md) — TDD 开发流程
 - [测试数据](testing/test-data.md) — 测试数据规范
 
+## 任务跟踪
+
+- [TODOs](todos/README.md) — 待办事项与路线图
+
 ## AI 开发
 
 - [编码规则](ai/coding-rules.md) — 代码约定

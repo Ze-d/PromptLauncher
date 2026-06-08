@@ -31,6 +31,7 @@
 | `docs/user-manual.md` | User manual |
 | `docs/development-guide.md` | Developer guide |
 | `docs/changelog.md` | Version changelog |
+| `docs/todos/README.md` | TODO list and roadmap |
 | `docs/architecture/overview.md` | Architecture overview |
 | `docs/architecture/component-tree.md` | Component tree |
 | `docs/testing/testing-strategy.md` | Testing strategy |
