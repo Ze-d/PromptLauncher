@@ -1,4 +1,2 @@
-approvedBuilds: esbuild
-
-ignoredBuiltDependencies:
+onlyBuiltDependencies:
   - esbuild
