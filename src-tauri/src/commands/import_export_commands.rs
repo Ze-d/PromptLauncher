@@ -34,6 +34,8 @@ pub struct ImportResult {
     pub imported: usize,
     pub skipped: usize,
     pub errors: Vec<String>,
+    pub groups_imported: usize,
+    pub tags_imported: usize,
 }
 
 /// Export all prompts, groups, and tags as JSON.
@@ -122,7 +124,49 @@ pub async fn import_prompts_from_json(
     let mut imported = 0usize;
     let mut skipped = 0usize;
     let mut errors: Vec<String> = Vec::new();
+    let now = prompt_service::now_iso();
 
+    // ── 1. Import standalone groups ──
+    let mut groups_imported = 0usize;
+    for g in &data.groups {
+        let exists: bool = conn
+            .query_row(
+                "SELECT COUNT(*) > 0 FROM groups WHERE name = ?1",
+                rusqlite::params![g.name],
+                |row| row.get(0),
+            )
+            .unwrap_or(false);
+        if !exists {
+            conn.execute(
+                "INSERT INTO groups (name, sort_order, created_at, updated_at) VALUES (?1, ?2, ?3, ?3)",
+                rusqlite::params![g.name, g.sort_order, now],
+            )
+            .map_err(|e| AppError::Database(e.to_string()))?;
+            groups_imported += 1;
+        }
+    }
+
+    // ── 2. Import standalone tags ──
+    let mut tags_imported = 0usize;
+    for t in &data.tags {
+        let exists: bool = conn
+            .query_row(
+                "SELECT COUNT(*) > 0 FROM tags WHERE name = ?1",
+                rusqlite::params![t.name],
+                |row| row.get(0),
+            )
+            .unwrap_or(false);
+        if !exists {
+            conn.execute(
+                "INSERT INTO tags (name, created_at) VALUES (?1, ?2)",
+                rusqlite::params![t.name, now],
+            )
+            .map_err(|e| AppError::Database(e.to_string()))?;
+            tags_imported += 1;
+        }
+    }
+
+    // ── 3. Import prompts ──
     // Get existing prompt titles for dedup
     let mut existing_stmt = conn
         .prepare("SELECT title FROM prompts")
@@ -192,5 +236,7 @@ pub async fn import_prompts_from_json(
         imported,
         skipped,
         errors,
+        groups_imported,
+        tags_imported,
     })
 }

@@ -6,6 +6,8 @@ export interface ImportResult {
   imported: number;
   skipped: number;
   errors: string[];
+  groupsImported: number;
+  tagsImported: number;
 }
 
 export async function exportToJson(): Promise<string> {

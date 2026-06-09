@@ -250,8 +250,51 @@ fn score_for(p: &PromptDto, kw: &str) -> i64 {
     if p.content.to_lowercase().contains(kw) { s += 10; }
     if p.is_favorite { s += 10; }
     s += (p.usage_count).min(20);
-    if p.last_used_at.is_some() { s += 5; }
+
+    // Time-decay bonus based on last_used_at
+    if let Some(ref last_used) = p.last_used_at {
+        if let Ok(last_secs) = parse_iso_to_secs(last_used) {
+            let now_secs = system_time_secs();
+            let diff_days = now_secs.saturating_sub(last_secs) / 86400;
+            if diff_days <= 1 {
+                s += 15;
+            } else if diff_days <= 7 {
+                s += 10;
+            } else if diff_days <= 30 {
+                s += 5;
+            }
+        }
+    }
+
     s
+}
+
+fn parse_iso_to_secs(s: &str) -> Result<u64, ()> {
+    // Parse "YYYY-MM-DDTHH:MM:SS" format
+    if s.len() < 19 { return Err(()); }
+    let year: i64 = s[0..4].parse().map_err(|_| ())?;
+    let month: i64 = s[5..7].parse().map_err(|_| ())?;
+    let day: i64 = s[8..10].parse().map_err(|_| ())?;
+    let hour: i64 = s[11..13].parse().map_err(|_| ())?;
+    let min: i64 = s[14..16].parse().map_err(|_| ())?;
+    let sec: i64 = s[17..19].parse().map_err(|_| ())?;
+    let days = date_to_days_epoch(year, month, day);
+    Ok((days as u64) * 86400 + (hour as u64) * 3600 + (min as u64) * 60 + (sec as u64))
+}
+
+fn date_to_days_epoch(y: i64, m: i64, d: i64) -> i64 {
+    // Convert year/month/day to days since Unix epoch (1970-01-01)
+    let m = if m <= 2 { m + 12 } else { m };
+    let y = if m > 12 { y - 1 } else { y };
+    365 * y + y / 4 - y / 100 + y / 400 + (153 * (m - 3) + 2) / 5 + d - 719469
+}
+
+fn system_time_secs() -> u64 {
+    #[allow(deprecated)]
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
 }
 
 /// Mark a prompt as used: increment usage_count, update last_used_at.

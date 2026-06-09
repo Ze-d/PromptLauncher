@@ -5,6 +5,7 @@ import { usePromptStore } from "../stores/promptStore";
 import { useGroupStore } from "../stores/groupStore";
 import PromptList from "../components/prompt/PromptList";
 import PromptEditor from "../components/prompt/PromptEditor";
+import SettingsModal from "../components/settings/SettingsModal";
 import type { Group } from "../types/prompt";
 
 export default function MainPage() {
@@ -17,6 +18,7 @@ export default function MainPage() {
   const [addingGroup, setAddingGroup] = useState(false);
   const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
   const [groupNameInput, setGroupNameInput] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const addInputRef = useRef<HTMLInputElement>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
@@ -37,11 +39,25 @@ export default function MainPage() {
   }, [addingGroup, editingGroupId]);
 
   const filteredPrompts = (() => {
-    if (activeGroup === "favorites") return prompts.filter((p) => p.isFavorite);
+    // Sort: favorites first, then by updated_at DESC within each group
+    const sorted = [...prompts].sort((a, b) => {
+      if (a.isFavorite !== b.isFavorite) {
+        return a.isFavorite ? -1 : 1;
+      }
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
+
+    if (activeGroup === "favorites") return sorted.filter((p) => p.isFavorite);
+    if (activeGroup === "recent") {
+      const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      return sorted.filter(
+        (p) => p.lastUsedAt && new Date(p.lastUsedAt).getTime() > cutoff,
+      );
+    }
     // Custom group: filter by group_id
     const gid = Number(activeGroup);
-    if (!isNaN(gid)) return prompts.filter((p) => p.groupId === gid);
-    return prompts; // "all"
+    if (!isNaN(gid)) return sorted.filter((p) => p.groupId === gid);
+    return sorted; // "all"
   })();
 
   // ── Group actions ──
@@ -135,6 +151,16 @@ export default function MainPage() {
             }`}
           >
             ★ Favorites
+          </button>
+          <button
+            onClick={() => setActiveGroup("recent")}
+            className={`w-full text-left px-3 py-1.5 text-sm rounded-md ${
+              activeGroup === "recent"
+                ? "bg-blue-50 text-blue-700 font-medium"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            🕐 Recent
           </button>
 
           {/* Custom groups */}
@@ -234,11 +260,11 @@ export default function MainPage() {
 
       {/* ── Prompt List ── */}
       <main className="w-72 border-r border-gray-200 bg-white flex flex-col shrink-0">
-        <div className="px-4 py-3 border-b border-gray-100">
+        <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
           <input
             type="text"
             placeholder="Filter prompts..."
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             onChange={(e) => {
               // Quick filter: just select matching prompt
               const q = e.target.value.toLowerCase();
@@ -252,6 +278,13 @@ export default function MainPage() {
               }
             }}
           />
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 text-lg"
+            title="Settings"
+          >
+            ⚙
+          </button>
         </div>
         <PromptList
           prompts={filteredPrompts}
@@ -273,6 +306,9 @@ export default function MainPage() {
       <section className="flex-1 bg-gray-50 p-6 overflow-y-auto">
         <PromptEditor prompt={selectedPrompt} groups={groups} />
       </section>
+
+      {/* Settings Modal */}
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }
