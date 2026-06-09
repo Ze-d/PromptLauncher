@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Setting {
     pub key: String,
     pub value: String,
@@ -8,6 +9,7 @@ pub struct Setting {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AppSettingsDto {
     pub global_shortcut: String,
     pub theme: String,

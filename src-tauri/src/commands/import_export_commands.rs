@@ -6,6 +6,7 @@ use crate::models::*;
 use crate::services::prompt_service;
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct ExportData {
     version: u32,
     exported_at: String,
@@ -15,6 +16,7 @@ struct ExportData {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct ExportPrompt {
     title: String,
     content: String,
@@ -26,6 +28,7 @@ struct ExportPrompt {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ImportResult {
     pub total: usize,
     pub imported: usize,

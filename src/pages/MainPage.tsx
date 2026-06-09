@@ -1,38 +1,121 @@
 // MainPage.tsx — Prompt management (CRUD) page
 // Layout: sidebar (groups) | prompt list | prompt editor
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePromptStore } from "../stores/promptStore";
+import { useGroupStore } from "../stores/groupStore";
 import PromptList from "../components/prompt/PromptList";
 import PromptEditor from "../components/prompt/PromptEditor";
 import type { Group } from "../types/prompt";
 
-// TODO: Replace with real group data from backend
-const MOCK_GROUPS: Group[] = [];
-
 export default function MainPage() {
   const { prompts, selectedPrompt, loadPrompts, selectPrompt, clearSelection } =
     usePromptStore();
+  const { groups, loadGroups, createGroup, updateGroup, deleteGroup } =
+    useGroupStore();
+
   const [activeGroup, setActiveGroup] = useState<string>("all");
+  const [addingGroup, setAddingGroup] = useState(false);
+  const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
+  const [groupNameInput, setGroupNameInput] = useState("");
+
+  const addInputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadPrompts();
-  }, [loadPrompts]);
+    loadGroups();
+  }, [loadPrompts, loadGroups]);
+
+  useEffect(() => {
+    if (addingGroup && addInputRef.current) {
+      addInputRef.current.focus();
+    }
+    if (editingGroupId !== null && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [addingGroup, editingGroupId]);
 
   const filteredPrompts = (() => {
     if (activeGroup === "favorites") return prompts.filter((p) => p.isFavorite);
-    return prompts; // "all" or custom group
+    // Custom group: filter by group_id
+    const gid = Number(activeGroup);
+    if (!isNaN(gid)) return prompts.filter((p) => p.groupId === gid);
+    return prompts; // "all"
   })();
+
+  // ── Group actions ──
+
+  async function handleAddGroup() {
+    const name = groupNameInput.trim();
+    if (!name) {
+      setAddingGroup(false);
+      setGroupNameInput("");
+      return;
+    }
+    try {
+      const g = await createGroup({ name });
+      setActiveGroup(String(g.id));
+    } catch {
+      // error handled by store
+    }
+    setAddingGroup(false);
+    setGroupNameInput("");
+  }
+
+  async function handleEditGroup(group: Group) {
+    if (editingGroupId === group.id) {
+      // Save
+      const name = groupNameInput.trim();
+      if (name && name !== group.name) {
+        try {
+          await updateGroup({ id: group.id, name });
+        } catch {
+          // error handled by store
+        }
+      }
+      setEditingGroupId(null);
+      setGroupNameInput("");
+    } else {
+      // Start editing
+      setEditingGroupId(group.id);
+      setGroupNameInput(group.name);
+    }
+  }
+
+  async function handleDeleteGroup(group: Group) {
+    if (!confirm(`Delete group "${group.name}"? Prompts in this group will be ungrouped.`)) return;
+    try {
+      await deleteGroup(group.id);
+      if (activeGroup === String(group.id)) {
+        setActiveGroup("all");
+      }
+    } catch {
+      // error handled by store
+    }
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
       {/* ── Sidebar ── */}
       <aside className="w-48 border-r border-gray-200 bg-white flex flex-col shrink-0">
-        <div className="p-4 pb-2">
+        <div className="p-4 pb-2 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
             Groups
           </h2>
+          <button
+            onClick={() => {
+              setAddingGroup(!addingGroup);
+              setGroupNameInput("");
+            }}
+            className="text-gray-400 hover:text-blue-600 text-lg leading-none px-1"
+            title="Add group"
+          >
+            +
+          </button>
         </div>
-        <nav className="flex-1 px-2 space-y-0.5">
+
+        <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
           <button
             onClick={() => setActiveGroup("all")}
             className={`w-full text-left px-3 py-1.5 text-sm rounded-md ${
@@ -53,25 +136,94 @@ export default function MainPage() {
           >
             ★ Favorites
           </button>
-          {MOCK_GROUPS.map((g) => (
-            <button
+
+          {/* Custom groups */}
+          {groups.map((g) => (
+            <div
               key={g.id}
-              onClick={() => setActiveGroup(String(g.id))}
-              className={`w-full text-left px-3 py-1.5 text-sm rounded-md ${
+              className={`group flex items-center rounded-md ${
                 activeGroup === String(g.id)
                   ? "bg-blue-50 text-blue-700 font-medium"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              {g.name}
-            </button>
+              {editingGroupId === g.id ? (
+                <input
+                  ref={editInputRef}
+                  type="text"
+                  value={groupNameInput}
+                  onChange={(e) => setGroupNameInput(e.target.value)}
+                  onBlur={() => handleEditGroup(g)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleEditGroup(g);
+                    if (e.key === "Escape") {
+                      setEditingGroupId(null);
+                      setGroupNameInput("");
+                    }
+                  }}
+                  className="flex-1 px-2 py-1 text-sm bg-white border border-blue-300 rounded outline-none"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <>
+                  <button
+                    onClick={() => setActiveGroup(String(g.id))}
+                    className="flex-1 text-left px-3 py-1.5 text-sm truncate"
+                  >
+                    {g.name}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditGroup(g);
+                    }}
+                    className="hidden group-hover:block px-1 text-xs text-gray-400 hover:text-blue-600"
+                    title="Rename group"
+                  >
+                    ✎
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteGroup(g);
+                    }}
+                    className="hidden group-hover:block px-1 text-xs text-gray-400 hover:text-red-600"
+                    title="Delete group"
+                  >
+                    ✕
+                  </button>
+                </>
+              )}
+            </div>
           ))}
+
+          {/* Add group inline input */}
+          {addingGroup && (
+            <div className="px-2 pt-1">
+              <input
+                ref={addInputRef}
+                type="text"
+                value={groupNameInput}
+                onChange={(e) => setGroupNameInput(e.target.value)}
+                onBlur={handleAddGroup}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddGroup();
+                  if (e.key === "Escape") {
+                    setAddingGroup(false);
+                    setGroupNameInput("");
+                  }
+                }}
+                placeholder="Group name…"
+                className="w-full px-2 py-1 text-sm border border-blue-300 rounded outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+          )}
         </nav>
+
         <div className="p-3 border-t border-gray-200">
           <button
             onClick={() => {
               clearSelection();
-              // Focus editor for new prompt
             }}
             className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
           >
@@ -119,7 +271,7 @@ export default function MainPage() {
 
       {/* ── Editor ── */}
       <section className="flex-1 bg-gray-50 p-6 overflow-y-auto">
-        <PromptEditor prompt={selectedPrompt} groups={MOCK_GROUPS} />
+        <PromptEditor prompt={selectedPrompt} groups={groups} />
       </section>
     </div>
   );

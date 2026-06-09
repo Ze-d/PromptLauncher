@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Prompt {
     pub id: i64,
     pub title: String,
@@ -16,6 +17,7 @@ pub struct Prompt {
 
 /// DTO returned to frontend — includes joined group name and tags.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PromptDto {
     pub id: i64,
     pub title: String,
@@ -32,6 +34,7 @@ pub struct PromptDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreatePromptInput {
     pub title: String,
     pub content: String,
@@ -42,6 +45,7 @@ pub struct CreatePromptInput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdatePromptInput {
     pub id: i64,
     pub title: Option<String>,
@@ -53,6 +57,7 @@ pub struct UpdatePromptInput {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchPromptInput {
     pub keyword: String,
     pub group_id: Option<i64>,

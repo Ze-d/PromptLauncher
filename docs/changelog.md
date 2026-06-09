@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.0.1 (MVP) — 2025-06-09 Bugfix
+
+### 修复
+
+- **序列化 bug**：所有 Rust 模型添加 `#[serde(rename_all = "camelCase")]`，统一前后端字段命名（`group_id` → `groupId`），修复编辑 prompt 时 group/favorite 数据丢失。
+- **Group CRUD**：实现完整的 Group 增删改查功能，包括后端 service/command 和前端 API/store/UI。
+- **SQL 参数编号 bug**：修复 `prompt_service::update_prompt` 和 `group_service::update_group` 中 `?` 与 `?NNN` 混用导致的参数映射错误。
+- **MainPage sidebar**：从 mock 空数组改为真实 group 数据，支持创建、重命名、删除分组。
+
+### 新增文件
+
+- `src-tauri/src/services/group_service.rs`
+- `src-tauri/src/commands/group_commands.rs`
+- `src/services/groupApi.ts`
+- `src/stores/groupStore.ts`
+
 ## v0.0.1 (MVP)
 
 ### 功能

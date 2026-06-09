@@ -5,10 +5,10 @@
 - [ ] 快捷键自定义（录制模式）
 - [ ] JSON 导入导出完善（含 tags、groups）
 - [ ] 最近使用排序优化
-- [ ] 使用次数统计面板
 - [ ] 收藏优先显示
 - [ ] 深色模式完善
-- [ ] 开机自启动
+- [x] ~~bug:不能编辑已有的prompt~~（已修复：序列化不匹配 + SQL参数编号）
+- [x] ~~bug：不能添加group~~（已修复：实现 Group CRUD + 前端UI）
 
 ## P2 — 后续版本
 
@@ -28,6 +28,13 @@
 
 - [ ] macOS / Linux 平台适配
 - [ ] 快捷键冲突时的用户体验优化
+
+## 工程改进（2025-06-09 修复）
+
+- [x] Rust 前后端字段序列化统一（`#[serde(rename_all = "camelCase")]`）
+- [x] Group CRUD 后端实现（group_service.rs + group_commands.rs）
+- [x] Group 前端集成（groupApi.ts + groupStore.ts + MainPage UI）
+- [x] 修复 `update_prompt` / `update_group` SQL 参数编号 bug
 
 ## 工程改进
 

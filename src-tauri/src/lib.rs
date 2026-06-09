@@ -7,7 +7,7 @@ pub mod models;
 pub mod services;
 pub mod utils;
 
-use commands::{clipboard_commands, import_export_commands, prompt_commands, setting_commands, window_commands};
+use commands::{clipboard_commands, group_commands, import_export_commands, prompt_commands, setting_commands, window_commands};
 use db::connection::init_db;
 use services::{shortcut_service, tray_service};
 use tauri::Manager;
@@ -61,6 +61,11 @@ pub fn run() {
             // Settings commands
             setting_commands::get_settings,
             setting_commands::update_setting,
+            // Group commands
+            group_commands::create_group,
+            group_commands::list_groups,
+            group_commands::update_group,
+            group_commands::delete_group,
             // Import/Export commands
             import_export_commands::export_prompts_to_json,
             import_export_commands::import_prompts_from_json,

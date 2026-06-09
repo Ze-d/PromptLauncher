@@ -10,10 +10,14 @@
 | `src/services/windowApi.ts` | Tauri invoke wrappers for window control |
 | `src/services/settingApi.ts` | Tauri invoke wrappers for settings |
 | `src/services/importExportApi.ts` | Tauri invoke wrappers for import/export |
+| `src/services/groupApi.ts` | Tauri invoke wrappers for group CRUD |
 | `src/stores/promptStore.ts` | Zustand store for prompt state |
 | `src/stores/searchStore.ts` | Zustand store for search state |
+| `src/stores/groupStore.ts` | Zustand store for group state |
 | `src-tauri/src/commands/prompt_commands.rs` | Tauri command handlers |
+| `src-tauri/src/commands/group_commands.rs` | Group Tauri command handlers |
 | `src-tauri/src/services/prompt_service.rs` | Prompt business logic |
+| `src-tauri/src/services/group_service.rs` | Group business logic (CRUD) |
 | `src-tauri/src/services/search_service.rs` | Search scoring and ranking |
 | `src-tauri/src/db/migrations.rs` | Database schema |
 | `src-tauri/src/errors/app_error.rs` | Unified error type |

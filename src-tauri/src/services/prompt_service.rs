@@ -34,32 +34,32 @@ pub fn update_prompt(conn: &Connection, input: UpdatePromptInput) -> Result<Prom
     let now = now_iso();
 
     // Build update dynamically based on which fields are provided
-    let mut sets: Vec<String> = vec!["updated_at = ?".into()];
+    let mut sets: Vec<String> = vec!["updated_at = ?1".into()];
     let mut params: Vec<Box<dyn rusqlite::types::ToSql>> = vec![Box::new(now.clone())];
 
     if let Some(ref title) = input.title {
-        sets.push(format!("title = ?{}", sets.len()));
+        sets.push(format!("title = ?{}", sets.len() + 1));
         params.push(Box::new(title.clone()));
     }
     if let Some(ref content) = input.content {
-        sets.push(format!("content = ?{}", sets.len()));
+        sets.push(format!("content = ?{}", sets.len() + 1));
         params.push(Box::new(content.clone()));
     }
     if let Some(ref description) = input.description {
-        sets.push(format!("description = ?{}", sets.len()));
+        sets.push(format!("description = ?{}", sets.len() + 1));
         params.push(Box::new(description.clone()));
     }
     if let Some(group_id) = input.group_id {
-        sets.push(format!("group_id = ?{}", sets.len()));
+        sets.push(format!("group_id = ?{}", sets.len() + 1));
         params.push(Box::new(group_id));
     }
     if let Some(is_favorite) = input.is_favorite {
-        sets.push(format!("is_favorite = ?{}", sets.len()));
+        sets.push(format!("is_favorite = ?{}", sets.len() + 1));
         params.push(Box::new(is_favorite as i64));
     }
 
     let set_clause = sets.join(", ");
-    let sql = format!("UPDATE prompts SET {} WHERE id = ?{}", set_clause, sets.len());
+    let sql = format!("UPDATE prompts SET {} WHERE id = ?{}", set_clause, sets.len() + 1);
     params.push(Box::new(input.id));
 
     let affected = conn.execute(&sql, rusqlite::params_from_iter(params.iter().map(|p| p.as_ref()))).map_err(|e| AppError::Database(e.to_string()))?;
