@@ -32,9 +32,14 @@ pub fn create_tray(app: &AppHandle) -> Result<(), AppError> {
         .map_err(|e| AppError::Window(e.to_string()))?;
 
     let app_handle = app.clone();
-    TrayIconBuilder::new()
+    let icon = app.default_window_icon().cloned();
+    let mut builder = TrayIconBuilder::new()
         .menu(&menu)
-        .tooltip("Prompt Launcher")
+        .tooltip("Prompt Launcher");
+    if let Some(icon) = icon {
+        builder = builder.icon(icon);
+    }
+    builder
         .on_menu_event(move |_app, event| {
             match event.id().as_ref() {
                 MENU_OPEN => {

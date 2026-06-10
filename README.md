@@ -13,12 +13,16 @@ Press global shortcut → Search → Enter → Copy → Paste
 ## 功能 / Features
 
 - **Prompt CRUD** — 新增、编辑、删除、查看，支持标题/内容/描述/标签/分组/收藏
-- **快速搜索** — `Ctrl+Alt+Space` 唤起搜索窗，实时过滤，键盘导航
+- **快速搜索** — `Ctrl+Alt+Space` 唤起搜索窗，实时过滤，键盘导航，评分排序
 - **剪贴板复制** — 回车复制内容到系统剪贴板，自动标记使用次数和时间
-- **系统托盘** — 关闭主窗口隐藏到托盘，后台常驻
-- **全局快捷键** — 默认 `Ctrl+Alt+Space`，可在设置页修改
-- **设置页** — 快捷键录制、主题切换（system/light/dark）、关闭到托盘、开机自启
-- **导入导出** — JSON 格式导出所有数据，支持导入并自动处理重名
+- **系统托盘** — 关闭主窗口隐藏到托盘，显示应用图标，后台常驻
+- **全局快捷键** — 默认 `Ctrl+Alt+Space`，齿轮 ⚙ → Settings Modal → Record 录制自定义
+- **设置弹窗** — 齿轮按钮弹出 Settings Modal：快捷键录制、主题切换（System/Light/Dark）、数据导入导出
+- **收藏优先** — 收藏项（★）在 All 视图中自动置顶显示
+- **最近使用** — 侧边栏 🕐 Recent 视图，30 天内使用过的 prompt 自动聚合
+- **搜索优化** — 评分时间衰减（最近使用更靠前）+ 收藏加分 + 使用次数加权
+- **导入导出** — JSON 格式导出全部数据（groups/tags/prompts），导入自动创建分组和标签
+- **深色模式** — 完整深色模式支持，所有组件适配 `dark:` 样式
 - **本地存储** — SQLite 持久化，无需账号、无需网络、无需云
 
 ---
@@ -82,7 +86,7 @@ cargo test       # 运行测试
 
 ```bash
 pnpm tauri build
-# 产物 → src-tauri/target/release/bundle/nsis/Prompt Launcher_0.0.1_x64-setup.exe
+# 产物 → src-tauri/target/release/bundle/nsis/Prompt Launcher_0.1.1_x64-setup.exe
 ```
 
 ---
@@ -110,18 +114,18 @@ PromptLauncher/
 │   └── ai/                            # AI 编码规范
 │
 ├── src/                               # React 前端
-│   ├── app/App.tsx                    # 根组件 — 按窗口 label 路由
+│   ├── app/App.tsx                    # 根组件 — 按窗口 label 路由 + 主题激活
 │   ├── pages/
-│   │   ├── MainPage.tsx               # 三栏布局管理页
+│   │   ├── MainPage.tsx               # 三栏布局管理页（齿轮设置按钮 + 侧边栏）
 │   │   ├── QuickSearchPage.tsx        # 快速搜索窗口
-│   │   └── SettingsPage.tsx           # 设置页
+│   │   └── SettingsPage.tsx           # 设置页（旧版，保留兼容）
 │   ├── components/
 │   │   ├── layout/                    # AppLayout, Sidebar, Toolbar
 │   │   ├── prompt/                    # PromptList, PromptEditor, PromptCard, TagInput, GroupSelect
 │   │   ├── search/                    # QuickSearchBox, QuickSearchResultList, QuickSearchResultItem
-│   │   ├── settings/                  # ShortcutSetting, ThemeSetting, DataSetting
+│   │   ├── settings/                  # SettingsModal, ShortcutSetting, ThemeSetting, DataSetting
 │   │   └── common/                    # Button, Input, Modal, Toast
-│   ├── stores/                        # Zustand: promptStore, searchStore, settingStore, uiStore
+│   ├── stores/                        # Zustand: promptStore, searchStore, settingStore, groupStore, uiStore
 │   ├── services/                      # Tauri invoke 封装
 │   ├── types/                         # TypeScript 类型定义
 │   └── utils/                         # 工具函数
@@ -132,8 +136,9 @@ PromptLauncher/
 │   └── src/
 │       ├── main.rs                    # 入口
 │       ├── lib.rs                     # 模块注册 + builder + setup
-│       ├── commands/                  # 19 个 Tauri commands
+│       ├── commands/                  # 23 个 Tauri commands
 │       │   ├── prompt_commands.rs     # CRUD + search + mark_used
+│       │   ├── group_commands.rs      # Group CRUD
 │       │   ├── window_commands.rs     # 窗口显隐控制
 │       │   ├── clipboard_commands.rs  # 剪贴板读写
 │       │   ├── setting_commands.rs    # 配置读写
@@ -163,7 +168,7 @@ PromptLauncher/
 
 ---
 
-## Tauri Commands（19 个）
+## Tauri Commands（23 个）
 
 | 分类 | Command | 说明 |
 |------|---------|------|
@@ -171,6 +176,7 @@ PromptLauncher/
 | | `show_quick_search_window` `hide_quick_search_window` `toggle_quick_search_window` | 搜索窗控制 |
 | Prompt | `create_prompt` `update_prompt` `delete_prompt` | CRUD |
 | | `get_prompt` `list_prompts` `search_prompts` `mark_prompt_used` | 查询+统计 |
+| Group | `create_group` `list_groups` `update_group` `delete_group` | 分组 CRUD |
 | Clipboard | `copy_to_clipboard` `copy_prompt_to_clipboard` | 复制 |
 | Settings | `get_settings` `update_setting` | 配置 |
 | I/O | `export_prompts_to_json` `import_prompts_from_json` | 导入导出 |
@@ -192,10 +198,17 @@ PromptLauncher/
 | M8 | 设置页 / Settings Page | ✅ |
 | M9 | 导入导出 / Import & Export | ✅ |
 | M10 | Windows 打包 / Packaging | ✅ |
+| M11 | P1 功能完善 / P1 Features | ✅ |
+| &nbsp; | — 快捷键录制 / Shortcut Recording | ✅ |
+| &nbsp; | — JSON 导入导出完善（含 groups/tags） | ✅ |
+| &nbsp; | — 最近使用排序 / Recent Usage | ✅ |
+| &nbsp; | — 收藏优先显示 / Favorites First | ✅ |
+| &nbsp; | — 深色模式完善 / Dark Mode | ✅ |
+| &nbsp; | — 托盘图标修复 / Tray Icon Fix | ✅ |
 
 ---
 
-## 非目标 / Non-Goals (v0.0.1)
+## 非目标 / Non-Goals (v0.1.x)
 
 - ❌ AI 聊天客户端 / AI chat client
 - ❌ 云同步 / Cloud sync

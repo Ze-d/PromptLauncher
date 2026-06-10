@@ -25,7 +25,7 @@ export default function PromptList({ prompts, selectedId, onSelect }: Props) {
   if (prompts.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center p-4">
-        <p className="text-sm text-gray-400 text-center">
+        <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
           No prompts yet.
           <br />
           <span className="text-xs">Ctrl+N to create one</span>

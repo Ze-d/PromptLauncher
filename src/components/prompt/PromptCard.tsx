@@ -13,14 +13,14 @@ export default function PromptCard({ prompt, isSelected, onSelect }: Props) {
       onClick={onSelect}
       className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${
         isSelected
-          ? "bg-blue-50 border border-blue-200"
-          : "hover:bg-gray-100 border border-transparent"
+          ? "bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800"
+          : "hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent"
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-medium text-gray-900 truncate">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
           {prompt.isFavorite && <span className="mr-1 text-yellow-500">★</span>}
-          {prompt.title || <span className="italic text-gray-400">Untitled</span>}
+          {prompt.title || <span className="italic text-gray-400 dark:text-gray-500">Untitled</span>}
         </h3>
         {prompt.usageCount > 0 && (
           <span className="text-xs text-gray-400 whitespace-nowrap">
@@ -33,7 +33,7 @@ export default function PromptCard({ prompt, isSelected, onSelect }: Props) {
           {prompt.tags.map((tag) => (
             <span
               key={tag}
-              className="px-1.5 py-0.5 text-xs rounded bg-gray-200 text-gray-600"
+              className="px-1.5 py-0.5 text-xs rounded bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300"
             >
               {tag}
             </span>

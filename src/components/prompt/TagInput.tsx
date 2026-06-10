@@ -36,7 +36,7 @@ export default function TagInput({ tags, onChange, disabled }: Props) {
       {tags.map((tag) => (
         <span
           key={tag}
-          className="inline-flex items-center gap-0.5 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700"
+          className="inline-flex items-center gap-0.5 px-2 py-0.5 text-xs rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"
         >
           {tag}
           <button
@@ -57,7 +57,7 @@ export default function TagInput({ tags, onChange, disabled }: Props) {
         onBlur={addTag}
         placeholder={tags.length === 0 ? "Add tags..." : ""}
         disabled={disabled}
-        className="flex-1 min-w-[120px] border-none outline-none bg-transparent text-sm text-gray-700 placeholder-gray-400 py-1"
+        className="flex-1 min-w-[120px] border-none outline-none bg-transparent text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 py-1"
       />
     </div>
   );

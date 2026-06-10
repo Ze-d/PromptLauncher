@@ -1,10 +1,11 @@
-// SettingsModal.tsx — Settings modal with shortcut recording + data import/export
+// SettingsModal.tsx — Settings modal with theme, shortcut recording + data import/export
 import { useRef, useState } from "react";
 import { useSettingStore } from "../../stores/settingStore";
 import { usePromptStore } from "../../stores/promptStore";
 import { useGroupStore } from "../../stores/groupStore";
 import { useToast } from "../common/Toast";
 import ShortcutSetting from "./ShortcutSetting";
+import type { Theme } from "../../types/setting";
 import {
   exportToJson,
   importFromJson,
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export default function SettingsModal({ open, onClose }: Props) {
-  const { settings } = useSettingStore();
+  const { settings, saveSetting } = useSettingStore();
   const { loadPrompts } = usePromptStore();
   const { loadGroups } = useGroupStore();
   const { showToast } = useToast();
@@ -28,6 +29,11 @@ export default function SettingsModal({ open, onClose }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   if (!open) return null;
+
+  async function handleThemeChange(theme: Theme) {
+    await saveSetting("theme", theme);
+    showToast("Theme updated");
+  }
 
   async function handleExport() {
     try {
@@ -62,37 +68,63 @@ export default function SettingsModal({ open, onClose }: Props) {
     if (fileRef.current) fileRef.current.value = "";
   }
 
+  const themeBtn = (t: Theme, label: string) => (
+    <button
+      key={t}
+      onClick={() => handleThemeChange(t)}
+      className={`px-4 py-2 text-sm rounded-lg capitalize ${
+        settings.theme === t
+          ? "bg-blue-600 text-white"
+          : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+      }`}
+    >
+      {label}
+    </button>
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md mx-4 p-6 space-y-6">
+      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-full max-w-md mx-4 p-6 space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-800">Settings</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Settings</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none"
           >
             ✕
           </button>
         </div>
 
+        {/* Section: Theme */}
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+            Theme
+          </h3>
+          <div className="flex gap-2">
+            {themeBtn("system", "System")}
+            {themeBtn("light", "Light")}
+            {themeBtn("dark", "Dark")}
+          </div>
+        </div>
+
         {/* Section: Shortcut */}
-        <div className="border-t border-gray-100 pt-4">
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
           <ShortcutSetting currentShortcut={settings.globalShortcut} />
         </div>
 
         {/* Section: Data */}
-        <div className="border-t border-gray-100 pt-4">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+        <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
             Data
           </h3>
-          <p className="text-xs text-gray-400 mb-3">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
             All data stored locally at:
           </p>
-          <p className="text-xs text-gray-600 font-mono select-all mb-3">
+          <p className="text-xs text-gray-600 dark:text-gray-400 font-mono select-all mb-3">
             %APPDATA%/PromptLauncher/prompt-launcher.db
           </p>
           <div className="flex gap-2">
@@ -114,7 +146,7 @@ export default function SettingsModal({ open, onClose }: Props) {
             </label>
           </div>
           {importResult && (
-            <div className="mt-3 text-xs p-2 rounded bg-gray-50 border border-gray-200">
+            <div className="mt-3 text-xs p-2 rounded bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300">
               {importResult.total} total, {importResult.imported} prompts imported
               {importResult.groupsImported > 0 &&
                 `, ${importResult.groupsImported} groups`}
@@ -122,7 +154,7 @@ export default function SettingsModal({ open, onClose }: Props) {
                 `, ${importResult.tagsImported} tags`}
               {importResult.skipped > 0 && `, ${importResult.skipped} skipped`}
               {importResult.errors.map((e, i) => (
-                <p key={i} className="text-red-500 mt-0.5">
+                <p key={i} className="text-red-500 dark:text-red-400 mt-0.5">
                   {e}
                 </p>
               ))}

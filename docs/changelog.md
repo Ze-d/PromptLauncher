@@ -1,5 +1,51 @@
 # Changelog
 
+## v0.1.1 — 2025-06-10 Dark Mode + Tray Icon Fix
+
+### 新增
+
+- **深色模式完善**：添加 `darkMode: 'class'` Tailwind 配置，App.tsx 主题激活逻辑（System/Light/Dark），所有主窗口组件添加 `dark:` 变体样式，Settings Modal 新增主题选择器。
+- **托盘图标修复**：`TrayIconBuilder` 添加 `.icon()` 调用，使用应用默认图标，修复 Windows 下托盘图标不显示的问题。
+
+### 修改文件
+
+- `tailwind.config.js` — 添加 `darkMode: "class"`
+- `src/app/App.tsx` — 新增主题激活 hook（读取 store → 切换 `<html>` 的 `dark` class）
+- `src/pages/MainPage.tsx` — 全组件 dark 样式
+- `src/components/prompt/PromptCard.tsx` — dark 样式
+- `src/components/prompt/PromptEditor.tsx` — dark 样式（重构为提取公共 class）
+- `src/components/prompt/TagInput.tsx` — dark 样式
+- `src/components/prompt/GroupSelect.tsx` — dark 样式
+- `src/components/settings/SettingsModal.tsx` — dark 样式 + 新增主题选择器
+- `src/components/settings/ShortcutSetting.tsx` — dark 样式
+- `src-tauri/src/services/tray_service.rs` — 添加图标设置
+
+---
+
+## v0.1.0 — 2025-06-09 P1 Features
+
+### 新增
+
+- **Settings Modal**：主页面新增齿轮 ⚙ 按钮，点击弹出设置模态框，包含快捷键录制和数据导入导出两个区块。
+- **快捷键录制按钮**：显式 Record/Cancel/Save 录制流程，防止误触发。录制后自动保存到后端并重注册全局快捷键。
+- **JSON 导入导出完善**：导出已含 groups/tags/prompts 三个数组；导入时先独立处理 groups 和 tags 数组，再导入 prompts，结果报告包含分组数和标签数。
+- **最近使用排序优化**：侧边栏新增 🕐 Recent 视图，筛选 30 天内有使用记录的 prompt；搜索评分引入时间衰减（1 天内 +15，7 天内 +10，30 天内 +5）。
+- **收藏优先显示**：All Prompts 视图下收藏项自动置顶，组内按更新时间降序排列。
+
+### 修改文件
+
+- `src/pages/MainPage.tsx` — 齿轮按钮 + Modal 入口、Recent 侧边栏、收藏优先排序
+- `src-tauri/src/services/prompt_service.rs` — 搜索评分时间衰减逻辑
+- `src-tauri/src/commands/import_export_commands.rs` — 导入 groups/tags 预处理
+- `src/services/importExportApi.ts` — ImportResult 类型扩展
+
+### 新增文件
+
+- `src/components/settings/SettingsModal.tsx`
+- `src/components/settings/ShortcutSetting.tsx`
+
+---
+
 ## v0.0.1 (MVP) — 2025-06-09 Bugfix
 
 ### 修复

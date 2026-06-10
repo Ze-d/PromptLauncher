@@ -112,11 +112,11 @@ export default function MainPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       {/* ── Sidebar ── */}
-      <aside className="w-48 border-r border-gray-200 bg-white flex flex-col shrink-0">
+      <aside className="w-48 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shrink-0">
         <div className="p-4 pb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             Groups
           </h2>
           <button
@@ -124,7 +124,7 @@ export default function MainPage() {
               setAddingGroup(!addingGroup);
               setGroupNameInput("");
             }}
-            className="text-gray-400 hover:text-blue-600 text-lg leading-none px-1"
+            className="text-gray-400 dark:text-gray-500 hover:text-blue-600 text-lg leading-none px-1"
             title="Add group"
           >
             +
@@ -136,8 +136,8 @@ export default function MainPage() {
             onClick={() => setActiveGroup("all")}
             className={`w-full text-left px-3 py-1.5 text-sm rounded-md ${
               activeGroup === "all"
-                ? "bg-blue-50 text-blue-700 font-medium"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
           >
             All Prompts
@@ -146,8 +146,8 @@ export default function MainPage() {
             onClick={() => setActiveGroup("favorites")}
             className={`w-full text-left px-3 py-1.5 text-sm rounded-md ${
               activeGroup === "favorites"
-                ? "bg-blue-50 text-blue-700 font-medium"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
           >
             ★ Favorites
@@ -156,8 +156,8 @@ export default function MainPage() {
             onClick={() => setActiveGroup("recent")}
             className={`w-full text-left px-3 py-1.5 text-sm rounded-md ${
               activeGroup === "recent"
-                ? "bg-blue-50 text-blue-700 font-medium"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
           >
             🕐 Recent
@@ -169,8 +169,8 @@ export default function MainPage() {
               key={g.id}
               className={`group flex items-center rounded-md ${
                 activeGroup === String(g.id)
-                  ? "bg-blue-50 text-blue-700 font-medium"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               }`}
             >
               {editingGroupId === g.id ? (
@@ -187,7 +187,7 @@ export default function MainPage() {
                       setGroupNameInput("");
                     }
                   }}
-                  className="flex-1 px-2 py-1 text-sm bg-white border border-blue-300 rounded outline-none"
+                  className="flex-1 px-2 py-1 text-sm bg-white dark:bg-gray-700 dark:text-gray-100 border border-blue-300 rounded outline-none"
                   onClick={(e) => e.stopPropagation()}
                 />
               ) : (
@@ -203,7 +203,7 @@ export default function MainPage() {
                       e.stopPropagation();
                       handleEditGroup(g);
                     }}
-                    className="hidden group-hover:block px-1 text-xs text-gray-400 hover:text-blue-600"
+                    className="hidden group-hover:block px-1 text-xs text-gray-400 dark:text-gray-500 hover:text-blue-600"
                     title="Rename group"
                   >
                     ✎
@@ -213,7 +213,7 @@ export default function MainPage() {
                       e.stopPropagation();
                       handleDeleteGroup(g);
                     }}
-                    className="hidden group-hover:block px-1 text-xs text-gray-400 hover:text-red-600"
+                    className="hidden group-hover:block px-1 text-xs text-gray-400 dark:text-gray-500 hover:text-red-600"
                     title="Delete group"
                   >
                     ✕
@@ -240,13 +240,13 @@ export default function MainPage() {
                   }
                 }}
                 placeholder="Group name…"
-                className="w-full px-2 py-1 text-sm border border-blue-300 rounded outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-2 py-1 text-sm border border-blue-300 dark:border-blue-500 rounded outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
           )}
         </nav>
 
-        <div className="p-3 border-t border-gray-200">
+        <div className="p-3 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={() => {
               clearSelection();
@@ -259,14 +259,13 @@ export default function MainPage() {
       </aside>
 
       {/* ── Prompt List ── */}
-      <main className="w-72 border-r border-gray-200 bg-white flex flex-col shrink-0">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+      <main className="w-72 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shrink-0">
+        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
           <input
             type="text"
             placeholder="Filter prompts..."
-            className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="flex-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-3 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:text-gray-100 dark:placeholder-gray-400"
             onChange={(e) => {
-              // Quick filter: just select matching prompt
               const q = e.target.value.toLowerCase();
               if (q) {
                 const match = prompts.find(
@@ -280,7 +279,7 @@ export default function MainPage() {
           />
           <button
             onClick={() => setSettingsOpen(true)}
-            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 text-lg"
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-lg"
             title="Settings"
           >
             ⚙
@@ -297,13 +296,13 @@ export default function MainPage() {
             }
           }}
         />
-        <div className="px-3 py-2 border-t border-gray-200 text-xs text-gray-400">
+        <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500">
           {prompts.length} prompts
         </div>
       </main>
 
       {/* ── Editor ── */}
-      <section className="flex-1 bg-gray-50 p-6 overflow-y-auto">
+      <section className="flex-1 bg-gray-50 dark:bg-gray-900 p-6 overflow-y-auto">
         <PromptEditor prompt={selectedPrompt} groups={groups} />
       </section>
 

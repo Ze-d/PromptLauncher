@@ -11,6 +11,8 @@
 | `src/services/settingApi.ts` | Tauri invoke wrappers for settings |
 | `src/services/importExportApi.ts` | Tauri invoke wrappers for import/export |
 | `src/services/groupApi.ts` | Tauri invoke wrappers for group CRUD |
+| `src/components/settings/SettingsModal.tsx` | Settings Modal (shortcut recording + data import/export) |
+| `src/components/settings/ShortcutSetting.tsx` | Shortcut recording component (Record/Cancel/Save) |
 | `src/stores/promptStore.ts` | Zustand store for prompt state |
 | `src/stores/searchStore.ts` | Zustand store for search state |
 | `src/stores/groupStore.ts` | Zustand store for group state |

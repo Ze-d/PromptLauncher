@@ -73,7 +73,7 @@ export default function ShortcutSetting({ currentShortcut }: Props) {
 
   return (
     <div>
-      <label className="text-xs text-gray-500 mb-1 block">
+      <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
         Global Shortcut
       </label>
       <div className="flex gap-2">
@@ -83,16 +83,16 @@ export default function ShortcutSetting({ currentShortcut }: Props) {
           onKeyDown={handleKeyDown}
           readOnly
           tabIndex={recording ? 0 : -1}
-          className={`flex-1 rounded-lg border px-3 py-2 text-sm outline-none font-mono ${
+          className={`flex-1 rounded-lg border px-3 py-2 text-sm outline-none font-mono dark:text-gray-100 ${
             recording
-              ? "border-blue-500 ring-1 ring-blue-500 bg-blue-50"
-              : "border-gray-300 bg-gray-50"
+              ? "border-blue-500 ring-1 ring-blue-500 bg-blue-50 dark:bg-blue-900/30"
+              : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
           }`}
         />
         {recording ? (
           <button
             onClick={handleCancel}
-            className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
+            className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 font-medium"
           >
             Cancel
           </button>
