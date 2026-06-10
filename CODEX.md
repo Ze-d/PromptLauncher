@@ -47,7 +47,8 @@ prompt-launcher/
     app/            # App.tsx, routes.tsx
     pages/          # MainPage, QuickSearchPage, SettingsPage
     components/     # layout/, prompt/, search/, settings/, common/
-    stores/         # promptStore, searchStore, settingStore, uiStore, groupStore
+    hooks/          # useGroupManager
+    stores/         # promptStore, searchStore, settingStore, groupStore, helpers
     services/       # promptApi, settingApi, clipboardApi, windowApi, groupApi, importExportApi
     types/          # prompt, setting, api
     utils/          # date, search, keyboard
@@ -57,7 +58,7 @@ prompt-launcher/
       main.rs
       lib.rs
       commands/     # prompt, setting, window, clipboard, import_export, group
-      services/     # prompt, search, setting, shortcut, window, clipboard, tray, platform, group
+      services/     # prompt, setting, shortcut, window, clipboard, tray, group
       db/           # connection, migrations
       models/       # prompt, group, tag, setting, usage_log
       errors/       # app_error

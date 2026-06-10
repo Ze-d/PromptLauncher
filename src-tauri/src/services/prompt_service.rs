@@ -382,6 +382,331 @@ fn get_prompt_tags(conn: &Connection, prompt_id: i64) -> Result<Vec<String>, App
     Ok(tags)
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::atomic::{AtomicU32, Ordering};
+
+    static DB_COUNTER: AtomicU32 = AtomicU32::new(0);
+
+    fn setup_db() -> Connection {
+        let n = DB_COUNTER.fetch_add(1, Ordering::SeqCst);
+        let tmp = std::env::temp_dir().join(format!("test_prompt_{}_{}.db", std::process::id(), n));
+        let conn = Connection::open(&tmp).unwrap();
+        crate::db::migrations::run_migrations(&conn).unwrap();
+        conn
+    }
+
+    fn make_input(title: &str, content: &str) -> CreatePromptInput {
+        CreatePromptInput {
+            title: title.into(),
+            content: content.into(),
+            description: None,
+            group_id: None,
+            tags: None,
+            is_favorite: None,
+        }
+    }
+
+    // ── CRUD tests ──
+
+    #[test]
+    fn test_create_and_get_prompt() {
+        let conn = setup_db();
+        let p = create_prompt(&conn, make_input("Hello", "World")).unwrap();
+        assert_eq!(p.title, "Hello");
+        assert_eq!(p.content, "World");
+        assert!(!p.is_favorite);
+        assert_eq!(p.usage_count, 0);
+
+        let fetched = get_prompt(&conn, p.id).unwrap();
+        assert_eq!(fetched.id, p.id);
+    }
+
+    #[test]
+    fn test_create_prompt_with_tags() {
+        let conn = setup_db();
+        let input = CreatePromptInput {
+            tags: Some(vec!["rust".into(), "tauri".into()]),
+            ..make_input("Tagged", "Content")
+        };
+        let p = create_prompt(&conn, input).unwrap();
+        assert_eq!(p.tags.len(), 2);
+        assert!(p.tags.contains(&"rust".to_string()));
+        assert!(p.tags.contains(&"tauri".to_string()));
+    }
+
+    #[test]
+    fn test_create_prompt_with_group() {
+        let conn = setup_db();
+        // Create a group first
+        let g = crate::services::group_service::create_group(
+            &conn,
+            crate::models::CreateGroupInput { name: "Dev".into(), sort_order: None },
+        ).unwrap();
+
+        let input = CreatePromptInput {
+            group_id: Some(g.id),
+            is_favorite: Some(true),
+            ..make_input("With Group", "Content")
+        };
+        let p = create_prompt(&conn, input).unwrap();
+        assert_eq!(p.group_id, Some(g.id));
+        assert_eq!(p.group_name.as_deref(), Some("Dev"));
+        assert!(p.is_favorite);
+    }
+
+    #[test]
+    fn test_list_prompts() {
+        let conn = setup_db();
+        create_prompt(&conn, make_input("A", "a")).unwrap();
+        create_prompt(&conn, make_input("B", "b")).unwrap();
+        create_prompt(&conn, make_input("C", "c")).unwrap();
+
+        let prompts = list_prompts(&conn).unwrap();
+        assert_eq!(prompts.len(), 3);
+    }
+
+    #[test]
+    fn test_update_prompt_partial() {
+        let conn = setup_db();
+        let p = create_prompt(&conn, make_input("Old Title", "Old Content")).unwrap();
+
+        let updated = update_prompt(&conn, UpdatePromptInput {
+            id: p.id,
+            title: Some("New Title".into()),
+            content: None,
+            description: None,
+            group_id: None,
+            tags: None,
+            is_favorite: Some(true),
+        }).unwrap();
+        assert_eq!(updated.title, "New Title");
+        assert_eq!(updated.content, "Old Content"); // unchanged
+        assert!(updated.is_favorite);
+    }
+
+    #[test]
+    fn test_update_prompt_tags_replacement() {
+        let conn = setup_db();
+        let input = CreatePromptInput {
+            tags: Some(vec!["old".into()]),
+            ..make_input("T", "C")
+        };
+        let p = create_prompt(&conn, input).unwrap();
+        assert_eq!(p.tags, vec!["old"]);
+
+        let updated = update_prompt(&conn, UpdatePromptInput {
+            id: p.id,
+            title: None, content: None, description: None, group_id: None,
+            tags: Some(vec!["new".into(), "replaced".into()]),
+            is_favorite: None,
+        }).unwrap();
+        assert_eq!(updated.tags.len(), 2);
+        assert!(!updated.tags.contains(&"old".to_string()));
+    }
+
+    #[test]
+    fn test_update_nonexistent_prompt() {
+        let conn = setup_db();
+        let result = update_prompt(&conn, UpdatePromptInput {
+            id: 999,
+            title: Some("X".into()),
+            content: None, description: None, group_id: None, tags: None, is_favorite: None,
+        });
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_delete_prompt() {
+        let conn = setup_db();
+        let p = create_prompt(&conn, make_input("To Delete", "X")).unwrap();
+        delete_prompt(&conn, p.id).unwrap();
+        let result = get_prompt(&conn, p.id);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_delete_nonexistent_prompt() {
+        let conn = setup_db();
+        let result = delete_prompt(&conn, 999);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_get_nonexistent_prompt() {
+        let conn = setup_db();
+        let result = get_prompt(&conn, 999);
+        assert!(result.is_err());
+    }
+
+    // ── Search tests ──
+
+    #[test]
+    fn test_search_by_title() {
+        let conn = setup_db();
+        create_prompt(&conn, make_input("Rust Programming", "some content")).unwrap();
+        create_prompt(&conn, make_input("Python Guide", "other content")).unwrap();
+
+        let results = search_prompts(&conn, SearchPromptInput {
+            keyword: "rust".into(), group_id: None, only_favorite: None, limit: Some(10),
+        }).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].title, "Rust Programming");
+    }
+
+    #[test]
+    fn test_search_by_content() {
+        let conn = setup_db();
+        create_prompt(&conn, make_input("Title A", "unique keyword here")).unwrap();
+        create_prompt(&conn, make_input("Title B", "something else")).unwrap();
+
+        let results = search_prompts(&conn, SearchPromptInput {
+            keyword: "unique keyword".into(), group_id: None, only_favorite: None, limit: Some(10),
+        }).unwrap();
+        assert_eq!(results.len(), 1);
+    }
+
+    #[test]
+    fn test_search_by_tag() {
+        let conn = setup_db();
+        let input = CreatePromptInput {
+            tags: Some(vec!["docker".into()]),
+            ..make_input("Container Tips", "Use Docker")
+        };
+        create_prompt(&conn, input).unwrap();
+        create_prompt(&conn, make_input("Other", "No tags here")).unwrap();
+
+        let results = search_prompts(&conn, SearchPromptInput {
+            keyword: "docker".into(), group_id: None, only_favorite: None, limit: Some(10),
+        }).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].title, "Container Tips");
+    }
+
+    #[test]
+    fn test_search_favorite_filter() {
+        let conn = setup_db();
+        create_prompt(&conn, make_input("A", "x")).unwrap();
+        let fav_input = CreatePromptInput {
+            is_favorite: Some(true),
+            ..make_input("Fav", "content")
+        };
+        create_prompt(&conn, fav_input).unwrap();
+
+        let results = search_prompts(&conn, SearchPromptInput {
+            keyword: "".into(), group_id: None, only_favorite: Some(true), limit: Some(10),
+        }).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].title, "Fav");
+    }
+
+    #[test]
+    fn test_search_score_order() {
+        let conn = setup_db();
+        // Title match should rank higher than content-only match
+        create_prompt(&conn, make_input("Rust", "something")).unwrap();
+        create_prompt(&conn, make_input("Something", "Rust is great")).unwrap();
+
+        let results = search_prompts(&conn, SearchPromptInput {
+            keyword: "Rust".into(), group_id: None, only_favorite: None, limit: Some(10),
+        }).unwrap();
+        assert_eq!(results.len(), 2);
+        // Title match (score 50) should be first
+        assert_eq!(results[0].title, "Rust");
+    }
+
+    #[test]
+    fn test_search_empty_keyword() {
+        let conn = setup_db();
+        create_prompt(&conn, make_input("A", "B")).unwrap();
+
+        let results = search_prompts(&conn, SearchPromptInput {
+            keyword: "".into(), group_id: None, only_favorite: None, limit: Some(10),
+        }).unwrap();
+        // Empty keyword matches everything via LIKE '%%'
+        assert!(!results.is_empty());
+    }
+
+    #[test]
+    fn test_search_no_results() {
+        let conn = setup_db();
+        create_prompt(&conn, make_input("Hello", "World")).unwrap();
+
+        let results = search_prompts(&conn, SearchPromptInput {
+            keyword: "nonexistent".into(), group_id: None, only_favorite: None, limit: Some(10),
+        }).unwrap();
+        assert!(results.is_empty());
+    }
+
+    // ── mark_prompt_used tests ──
+
+    #[test]
+    fn test_mark_prompt_used() {
+        let conn = setup_db();
+        let p = create_prompt(&conn, make_input("Test", "Content")).unwrap();
+        assert_eq!(p.usage_count, 0);
+        assert!(p.last_used_at.is_none());
+
+        mark_prompt_used(&conn, p.id).unwrap();
+        let updated = get_prompt(&conn, p.id).unwrap();
+        assert_eq!(updated.usage_count, 1);
+        assert!(updated.last_used_at.is_some());
+    }
+
+    #[test]
+    fn test_mark_prompt_used_multiple() {
+        let conn = setup_db();
+        let p = create_prompt(&conn, make_input("Test", "Content")).unwrap();
+
+        mark_prompt_used(&conn, p.id).unwrap();
+        mark_prompt_used(&conn, p.id).unwrap();
+        mark_prompt_used(&conn, p.id).unwrap();
+
+        let updated = get_prompt(&conn, p.id).unwrap();
+        assert_eq!(updated.usage_count, 3);
+    }
+
+    #[test]
+    fn test_mark_prompt_used_nonexistent() {
+        let conn = setup_db();
+        let result = mark_prompt_used(&conn, 999);
+        assert!(result.is_err());
+    }
+
+    // ── Tag sync tests ──
+
+    #[test]
+    fn test_sync_tags_add_and_remove() {
+        let conn = setup_db();
+        let p = create_prompt(&conn, make_input("T", "C")).unwrap();
+
+        sync_tags(&conn, p.id, &["a".into(), "b".into()]).unwrap();
+        assert_eq!(get_prompt_tags(&conn, p.id).unwrap().len(), 2);
+
+        sync_tags(&conn, p.id, &["c".into()]).unwrap();
+        let tags = get_prompt_tags(&conn, p.id).unwrap();
+        assert_eq!(tags.len(), 1);
+        assert_eq!(tags[0], "c");
+    }
+
+    #[test]
+    fn test_sync_tags_empty_and_duplicates() {
+        let conn = setup_db();
+        let p = create_prompt(&conn, make_input("T", "C")).unwrap();
+
+        // Empty tag should be skipped
+        sync_tags(&conn, p.id, &["  ".into(), "valid".into()]).unwrap();
+        let tags = get_prompt_tags(&conn, p.id).unwrap();
+        assert_eq!(tags.len(), 1);
+
+        // Duplicate tags should not create duplicates
+        sync_tags(&conn, p.id, &["valid".into(), "valid".into()]).unwrap();
+        let tags = get_prompt_tags(&conn, p.id).unwrap();
+        assert_eq!(tags.len(), 1);
+    }
+}
+
 /// Sync tags for a prompt: remove old associations, create new tags, link.
 fn sync_tags(conn: &Connection, prompt_id: i64, tags: &[String]) -> Result<(), AppError> {
     // Remove old associations

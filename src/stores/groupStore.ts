@@ -3,13 +3,11 @@ import { create } from "zustand";
 import type { Group } from "../types/prompt";
 import * as groupApi from "../services/groupApi";
 import type { CreateGroupInput, UpdateGroupInput } from "../services/groupApi";
+import { asyncStateSlice, runAsync, type AsyncState } from "./helpers";
 
-interface GroupState {
+interface GroupState extends AsyncState {
   groups: Group[];
-  loading: boolean;
-  error: string | null;
 
-  // Actions
   loadGroups: () => Promise<void>;
   createGroup: (input: CreateGroupInput) => Promise<Group>;
   updateGroup: (input: UpdateGroupInput) => Promise<Group>;
@@ -17,63 +15,31 @@ interface GroupState {
   clearError: () => void;
 }
 
-export const useGroupStore = create<GroupState>((set) => ({
+export const useGroupStore = create<GroupState>((set, get) => ({
   groups: [],
-  loading: false,
-  error: null,
+  ...asyncStateSlice<GroupState>(set),
 
   loadGroups: async () => {
-    set({ loading: true, error: null });
-    try {
-      const groups = await groupApi.listGroups();
-      set({ groups, loading: false });
-    } catch (e) {
-      set({ error: String(e), loading: false });
-    }
+    await runAsync(set, () => groupApi.listGroups(), {
+      onOk: (groups) => ({ groups }),
+    });
   },
 
-  createGroup: async (input: CreateGroupInput) => {
-    set({ loading: true, error: null });
-    try {
-      const group = await groupApi.createGroup(input);
-      set((s) => ({
-        groups: [...s.groups, group],
-        loading: false,
-      }));
-      return group;
-    } catch (e) {
-      set({ error: String(e), loading: false });
-      throw e;
-    }
-  },
+  createGroup: (input) =>
+    runAsync(set, () => groupApi.createGroup(input), {
+      onOk: (group) => ({ groups: [...get().groups, group] }),
+    }),
 
-  updateGroup: async (input: UpdateGroupInput) => {
-    set({ loading: true, error: null });
-    try {
-      const updated = await groupApi.updateGroup(input);
-      set((s) => ({
-        groups: s.groups.map((g) => (g.id === updated.id ? updated : g)),
-        loading: false,
-      }));
-      return updated;
-    } catch (e) {
-      set({ error: String(e), loading: false });
-      throw e;
-    }
-  },
+  updateGroup: (input) =>
+    runAsync(set, () => groupApi.updateGroup(input), {
+      onOk: (updated) => ({
+        groups: get().groups.map((g) => (g.id === updated.id ? updated : g)),
+      }),
+    }),
 
-  deleteGroup: async (id: number) => {
-    set({ loading: true, error: null });
-    try {
-      await groupApi.deleteGroup(id);
-      set((s) => ({
-        groups: s.groups.filter((g) => g.id !== id),
-        loading: false,
-      }));
-    } catch (e) {
-      set({ error: String(e), loading: false });
-    }
+  deleteGroup: async (id) => {
+    await runAsync(set, () => groupApi.deleteGroup(id), {
+      onOk: () => ({ groups: get().groups.filter((g) => g.id !== id) }),
+    });
   },
-
-  clearError: () => set({ error: null }),
 }));

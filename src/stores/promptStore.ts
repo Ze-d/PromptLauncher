@@ -2,14 +2,12 @@
 import { create } from "zustand";
 import type { Prompt, CreatePromptInput, UpdatePromptInput } from "../types/prompt";
 import * as promptApi from "../services/promptApi";
+import { asyncStateSlice, runAsync, type AsyncState } from "./helpers";
 
-interface PromptState {
+interface PromptState extends AsyncState {
   prompts: Prompt[];
   selectedPrompt: Prompt | null;
-  loading: boolean;
-  error: string | null;
 
-  // Actions
   loadPrompts: () => Promise<void>;
   selectPrompt: (id: number) => void;
   createPrompt: (input: CreatePromptInput) => Promise<Prompt>;
@@ -22,70 +20,43 @@ interface PromptState {
 export const usePromptStore = create<PromptState>((set, get) => ({
   prompts: [],
   selectedPrompt: null,
-  loading: false,
-  error: null,
+  ...asyncStateSlice<PromptState>(set),
 
   loadPrompts: async () => {
-    set({ loading: true, error: null });
-    try {
-      const prompts = await promptApi.listPrompts();
-      set({ prompts, loading: false });
-    } catch (e) {
-      set({ error: String(e), loading: false });
-    }
+    await runAsync(set, () => promptApi.listPrompts(), {
+      onOk: (prompts) => ({ prompts }),
+    });
   },
 
-  selectPrompt: (id: number) => {
+  selectPrompt: (id) => {
     const prompt = get().prompts.find((p) => p.id === id) ?? null;
     set({ selectedPrompt: prompt });
   },
 
-  createPrompt: async (input: CreatePromptInput) => {
-    set({ loading: true, error: null });
-    try {
-      const prompt = await promptApi.createPrompt(input);
-      set((s) => ({
-        prompts: [prompt, ...s.prompts],
+  createPrompt: (input) =>
+    runAsync(set, () => promptApi.createPrompt(input), {
+      onOk: (prompt) => ({
+        prompts: [prompt, ...get().prompts],
         selectedPrompt: prompt,
-        loading: false,
-      }));
-      return prompt;
-    } catch (e) {
-      set({ error: String(e), loading: false });
-      throw e;
-    }
-  },
+      }),
+    }),
 
-  updatePrompt: async (input: UpdatePromptInput) => {
-    set({ loading: true, error: null });
-    try {
-      const updated = await promptApi.updatePrompt(input);
-      set((s) => ({
-        prompts: s.prompts.map((p) => (p.id === updated.id ? updated : p)),
+  updatePrompt: (input) =>
+    runAsync(set, () => promptApi.updatePrompt(input), {
+      onOk: (updated) => ({
+        prompts: get().prompts.map((p) => (p.id === updated.id ? updated : p)),
         selectedPrompt: updated,
-        loading: false,
-      }));
-      return updated;
-    } catch (e) {
-      set({ error: String(e), loading: false });
-      throw e;
-    }
-  },
+      }),
+    }),
 
-  deletePrompt: async (id: number) => {
-    set({ loading: true, error: null });
-    try {
-      await promptApi.deletePrompt(id);
-      set((s) => ({
-        prompts: s.prompts.filter((p) => p.id !== id),
-        selectedPrompt: s.selectedPrompt?.id === id ? null : s.selectedPrompt,
-        loading: false,
-      }));
-    } catch (e) {
-      set({ error: String(e), loading: false });
-    }
+  deletePrompt: async (id) => {
+    await runAsync(set, () => promptApi.deletePrompt(id), {
+      onOk: () => ({
+        prompts: get().prompts.filter((p) => p.id !== id),
+        selectedPrompt: get().selectedPrompt?.id === id ? null : get().selectedPrompt,
+      }),
+    });
   },
 
   clearSelection: () => set({ selectedPrompt: null }),
-  clearError: () => set({ error: null }),
 }));

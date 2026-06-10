@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import type { AppSettings } from "../types/setting";
 import * as settingApi from "../services/settingApi";
+import { asyncStateSlice, runAsync, type AsyncState } from "./helpers";
 
 const DEFAULTS: AppSettings = {
   globalShortcut: "Ctrl+Alt+Space",
@@ -13,43 +14,25 @@ const DEFAULTS: AppSettings = {
   quickWindowHeight: 420,
 };
 
-interface SettingState {
+interface SettingState extends AsyncState {
   settings: AppSettings;
-  loading: boolean;
-  error: string | null;
-
   loadSettings: () => Promise<void>;
   saveSetting: (key: keyof AppSettings, value: string | boolean | number) => Promise<void>;
   clearError: () => void;
 }
 
-export const useSettingStore = create<SettingState>((set) => ({
+export const useSettingStore = create<SettingState>((set, get) => ({
   settings: DEFAULTS,
-  loading: false,
-  error: null,
+  ...asyncStateSlice<SettingState>(set),
 
   loadSettings: async () => {
-    set({ loading: true, error: null });
-    try {
-      const settings = await settingApi.getSettings();
-      set({ settings, loading: false });
-    } catch (e) {
-      set({ error: String(e), loading: false });
-    }
+    await runAsync(set, () => settingApi.getSettings(), {
+      onOk: (settings) => ({ settings }),
+    });
   },
 
-  saveSetting: async (key, value) => {
-    set({ loading: true, error: null });
-    try {
-      await settingApi.updateSetting(key, String(value));
-      set((s) => ({
-        settings: { ...s.settings, [key]: value },
-        loading: false,
-      }));
-    } catch (e) {
-      set({ error: String(e), loading: false });
-    }
-  },
-
-  clearError: () => set({ error: null }),
+  saveSetting: (key, value) =>
+    runAsync(set, () => settingApi.updateSetting(key, String(value)), {
+      onOk: () => ({ settings: { ...get().settings, [key]: value } }),
+    }),
 }));

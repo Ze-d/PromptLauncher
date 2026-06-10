@@ -1,5 +1,51 @@
 # Changelog
 
+## v0.1.2 — 2025-06-10 Engineering Improvements (Test Coverage + Architecture)
+
+### 新增
+
+- **前端测试环境**：安装 vitest 2.x + @testing-library/react + jsdom，创建 `vitest.config.ts`，新增 `pnpm test` / `pnpm test:watch` 脚本。
+- **前端 Stores 测试**：3 个测试文件 24 个测试（searchStore 11, promptStore 8, settingStore 5），覆盖搜索、CRUD、键盘导航、设置等核心路径。
+- **Rust 单元测试**：prompt_service 新增 22 个测试（CRUD、tag sync、搜索评分排序、mark_used）、setting_service 新增 6 个测试（读写、Upsert、类型解析）。总计 32 个 Rust 测试。
+- **Store 公共模块**：创建 `src/stores/helpers.ts`（`asyncStateSlice` + `runAsync`），消除 loading/error/clearError 样板代码。
+
+### 重构
+
+- **MainPage.tsx 拆分**（313 行 → 79 行）：
+  - `src/hooks/useGroupManager.ts` — Group CRUD 状态 + 逻辑 hook
+  - `src/components/layout/Sidebar.tsx` — Group 导航 + 行内编辑/删除
+  - `src/components/layout/FilterBar.tsx` — 搜索过滤条 + 设置入口
+  - `src/pages/MainPage.tsx` — 薄编排层
+- **Store 模式 DRY**：groupStore、settingStore、promptStore 三个 store 使用公共 helper，各减少约 15 行重复代码。
+
+### 删除
+
+- 5 个空壳文件：`search_service.rs`、`platform_service.rs`、`uiStore.ts`、`ThemeSetting.tsx`、`DataSetting.tsx`
+- `src-tauri/src/services/mod.rs` 中对应注释行
+
+### 修改文件
+
+| 新增 | 修改 | 删除 |
+|------|------|------|
+| `vitest.config.ts` | `package.json` (+scripts, +devDeps) | `src/stores/uiStore.ts` |
+| `src/test-setup.ts` | `src/pages/MainPage.tsx` | `src/components/settings/ThemeSetting.tsx` |
+| `src/hooks/useGroupManager.ts` | `src/stores/promptStore.ts` | `src/components/settings/DataSetting.tsx` |
+| `src/components/layout/FilterBar.tsx` | `src/stores/settingStore.ts` | `src-tauri/src/services/search_service.rs` |
+| `src/components/layout/Sidebar.tsx` | `src/stores/groupStore.ts` | `src-tauri/src/services/platform_service.rs` |
+| `src/stores/helpers.ts` | `src-tauri/src/services/prompt_service.rs` (+22 tests) | `src-tauri/src/services/mod.rs` (-2 lines) |
+| `src/stores/searchStore.test.ts` | `src-tauri/src/services/setting_service.rs` (+6 tests) | |
+| `src/stores/promptStore.test.ts` | `docs/todos/README.md` | |
+| `src/stores/settingStore.test.ts` | | |
+
+### 验证
+
+- `pnpm typecheck` — ✅ 零错误
+- `pnpm test` — ✅ 24/24 passed
+- `cargo test` — ✅ 32/32 passed
+- `cargo check` — ✅ 通过
+
+---
+
 ## v0.1.1 — 2025-06-10 Dark Mode + Tray Icon Fix
 
 ### 新增
