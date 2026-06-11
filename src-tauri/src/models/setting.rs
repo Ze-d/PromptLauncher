@@ -18,6 +18,9 @@ pub struct AppSettingsDto {
     pub auto_start: bool,
     pub quick_window_width: i64,
     pub quick_window_height: i64,
+    pub sidebar_ratio: i64,
+    pub list_ratio: i64,
+    pub sidebar_collapsed: bool,
 }
 
 impl Default for AppSettingsDto {
@@ -30,6 +33,9 @@ impl Default for AppSettingsDto {
             auto_start: false,
             quick_window_width: 720,
             quick_window_height: 420,
+            sidebar_ratio: 18,
+            list_ratio: 27,
+            sidebar_collapsed: false,
         }
     }
 }

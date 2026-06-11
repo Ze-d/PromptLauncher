@@ -12,4 +12,7 @@ export type AppSettings = {
   autoStart: boolean;
   quickWindowWidth: number;
   quickWindowHeight: number;
+  sidebarRatio: number;
+  listRatio: number;
+  sidebarCollapsed: boolean;
 };

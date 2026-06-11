@@ -17,6 +17,8 @@
         "width": 1100,
         "height": 700,
         "resizable": true,
+        "minWidth": 680,
+        "minHeight": 420,
         "label": "main"
       },
       {

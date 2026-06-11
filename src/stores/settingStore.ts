@@ -12,6 +12,9 @@ const DEFAULTS: AppSettings = {
   autoStart: false,
   quickWindowWidth: 720,
   quickWindowHeight: 420,
+  sidebarRatio: 18,
+  listRatio: 27,
+  sidebarCollapsed: false,
 };
 
 interface SettingState extends AsyncState {

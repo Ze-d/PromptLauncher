@@ -137,10 +137,10 @@ export default function PromptEditor({ prompt, groups }: Props) {
         </div>
       </div>
 
-      {/* Form fields */}
-      <div className="flex-1 space-y-4 overflow-y-auto">
+      {/* Form fields — flex column so the textarea fills remaining space */}
+      <div className="flex-1 flex flex-col space-y-4 min-h-0">
         {/* Title */}
-        <div>
+        <div className="shrink-0">
           <label className={labelClass}>Title *</label>
           <input
             type="text"
@@ -152,20 +152,19 @@ export default function PromptEditor({ prompt, groups }: Props) {
           />
         </div>
 
-        {/* Content */}
-        <div>
+        {/* Content — fills remaining vertical space */}
+        <div className="flex-1 flex flex-col min-h-[60px]">
           <label className={labelClass}>Content *</label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Prompt content — this is what gets copied"
-            rows={8}
-            className={`${inputClass} resize-y font-mono`}
+            className={`${inputClass} flex-1 resize-y font-mono min-h-0`}
           />
         </div>
 
         {/* Description */}
-        <div>
+        <div className="shrink-0">
           <label className={labelClass}>Description</label>
           <input
             type="text"
@@ -177,13 +176,13 @@ export default function PromptEditor({ prompt, groups }: Props) {
         </div>
 
         {/* Tags */}
-        <div>
+        <div className="shrink-0">
           <label className={labelClass}>Tags</label>
           <TagInput tags={tags} onChange={setTags} />
         </div>
 
         {/* Group + Favorite row */}
-        <div className="flex gap-4">
+        <div className="shrink-0 flex gap-4">
           <div className="flex-1">
             <label className={labelClass}>Group</label>
             <GroupSelect value={groupId} onChange={setGroupId} groups={groups} />

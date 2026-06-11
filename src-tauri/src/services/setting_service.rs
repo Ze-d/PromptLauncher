@@ -31,6 +31,15 @@ pub fn get_settings(conn: &Connection) -> Result<AppSettingsDto, AppError> {
             "quick_window_height" => {
                 if let Ok(v) = value.parse() { settings.quick_window_height = v; }
             }
+            "sidebar_ratio" => {
+                if let Ok(v) = value.parse() { settings.sidebar_ratio = v; }
+            }
+            "list_ratio" => {
+                if let Ok(v) = value.parse() { settings.list_ratio = v; }
+            }
+            "sidebar_collapsed" => {
+                settings.sidebar_collapsed = value == "true";
+            }
             _ => {}
         }
     }
