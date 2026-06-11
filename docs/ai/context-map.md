@@ -61,12 +61,12 @@
 | `CODEX.md` | Project reference manual |
 | `CLAUDE.md` | Claude Code project instructions |
 | `AGENTS.md` | AI agent instructions |
-| `docs/01-product-requirements.md` | Product spec |
-| `docs/02-technical-architecture.md` | Architecture decisions |
-| `docs/03-execution-plan.md` | Development phases |
-| `docs/user-manual.md` | User manual |
-| `docs/development-guide.md` | Developer guide |
-| `docs/changelog.md` | Version changelog |
+| `docs/specs/01-product-requirements.md` | Product spec |
+| `docs/architecture/02-technical-architecture.md` | Architecture decisions |
+| `docs/specs/03-execution-plan.md` | Development phases |
+| `docs/reference/user-manual.md` | User manual |
+| `docs/reference/development-guide.md` | Developer guide |
+| `docs/reference/changelog.md` | Version changelog |
 | `docs/todos/README.md` | TODO list and roadmap |
 | `docs/todos/improvement-analysis.md` | Detailed improvement analysis |
 | `docs/architecture/overview.md` | Architecture overview |
