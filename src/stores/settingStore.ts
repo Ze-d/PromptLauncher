@@ -17,6 +17,19 @@ const DEFAULTS: AppSettings = {
   sidebarCollapsed: false,
 };
 
+const SETTING_DB_KEYS: Record<keyof AppSettings, string> = {
+  globalShortcut: "global_shortcut",
+  theme: "theme",
+  defaultAction: "default_action",
+  closeToTray: "close_to_tray",
+  autoStart: "auto_start",
+  quickWindowWidth: "quick_window_width",
+  quickWindowHeight: "quick_window_height",
+  sidebarRatio: "sidebar_ratio",
+  listRatio: "list_ratio",
+  sidebarCollapsed: "sidebar_collapsed",
+};
+
 interface SettingState extends AsyncState {
   settings: AppSettings;
   loadSettings: () => Promise<void>;
@@ -35,7 +48,7 @@ export const useSettingStore = create<SettingState>((set, get) => ({
   },
 
   saveSetting: (key, value) =>
-    runAsync(set, () => settingApi.updateSetting(key, String(value)), {
+    runAsync(set, () => settingApi.updateSetting(SETTING_DB_KEYS[key], String(value)), {
       onOk: () => ({ settings: { ...get().settings, [key]: value } }),
     }),
 }));

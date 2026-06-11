@@ -74,7 +74,7 @@ describe("settingStore", () => {
 
       await useSettingStore.getState().saveSetting("closeToTray", false);
       expect(useSettingStore.getState().settings.closeToTray).toBe(false);
-      expect(mockApi.updateSetting).toHaveBeenCalledWith("closeToTray", "false");
+      expect(mockApi.updateSetting).toHaveBeenCalledWith("close_to_tray", "false");
     });
 
     it("should save numeric values as strings", async () => {
@@ -82,7 +82,19 @@ describe("settingStore", () => {
 
       await useSettingStore.getState().saveSetting("quickWindowWidth", 900);
       expect(useSettingStore.getState().settings.quickWindowWidth).toBe(900);
-      expect(mockApi.updateSetting).toHaveBeenCalledWith("quickWindowWidth", "900");
+      expect(mockApi.updateSetting).toHaveBeenCalledWith("quick_window_width", "900");
+    });
+
+    it("should save layout settings using backend-readable keys", async () => {
+      mockApi.updateSetting.mockResolvedValue(undefined);
+
+      await useSettingStore.getState().saveSetting("sidebarRatio", 22);
+      await useSettingStore.getState().saveSetting("listRatio", 31);
+      await useSettingStore.getState().saveSetting("sidebarCollapsed", true);
+
+      expect(mockApi.updateSetting).toHaveBeenNthCalledWith(1, "sidebar_ratio", "22");
+      expect(mockApi.updateSetting).toHaveBeenNthCalledWith(2, "list_ratio", "31");
+      expect(mockApi.updateSetting).toHaveBeenNthCalledWith(3, "sidebar_collapsed", "true");
     });
   });
 });

@@ -2,6 +2,7 @@
 // Layout: Sidebar | ResizeHandle | PromptList | ResizeHandle | PromptEditor
 import { useEffect, useState, useCallback } from "react";
 import { usePromptStore } from "../stores/promptStore";
+import { useSettingStore } from "../stores/settingStore";
 import { useGroupManager } from "../hooks/useGroupManager";
 import { useResizableColumns } from "../hooks/useResizableColumns";
 import Sidebar from "../components/layout/Sidebar";
@@ -14,6 +15,7 @@ import SettingsModal from "../components/settings/SettingsModal";
 export default function MainPage() {
   const { prompts, selectedPrompt, loadPrompts, selectPrompt, clearSelection } =
     usePromptStore();
+  const loadSettings = useSettingStore((s) => s.loadSettings);
   const gm = useGroupManager();
   const {
     containerRef,
@@ -29,7 +31,8 @@ export default function MainPage() {
 
   useEffect(() => {
     loadPrompts();
-  }, [loadPrompts]);
+    loadSettings();
+  }, [loadPrompts, loadSettings]);
 
   // ── Filtered prompts ──
   const filteredPrompts = useCallback(() => {
