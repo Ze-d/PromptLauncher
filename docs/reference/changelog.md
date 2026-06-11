@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.1.3 — 2026-06-11 窗口/面板自适应与拖拽调整
+
+### 新增
+
+- **面板比例布局**：三栏（Sidebar | PromptList | Editor）改用百分比比例存储，窗口缩放时三栏等比变化，替代原固定像素宽度。
+- **拖拽调整面板**：自实现 `ResizeHandle` 组件（零依赖），支持在面板间拖拽调整比例。
+- **Sidebar 折叠**：一键折叠/展开 Sidebar（48px 图标模式 ↔ 展开模式），折叠状态持久化。
+- **Editor 动态高度**：PromptEditor 的 content textarea 改用 flex-1 弹性布局，窗口高度变化时自动填充剩余空间。
+
+### 修改文件
+
+| 新增 | 修改 |
+|------|------|
+| `src/components/layout/ResizeHandle.tsx` | `src-tauri/tauri.conf.json` (+minWidth/minHeight) |
+| `src/hooks/useResizableColumns.ts` | `src-tauri/src/models/setting.rs` (px→ratio) |
+| `docs/todos/flex-window-size.md` | `src-tauri/src/services/setting_service.rs` |
+| | `src/types/setting.ts` |
+| | `src/stores/settingStore.ts` / `.test.ts` |
+| | `src/pages/MainPage.tsx` |
+| | `src/components/layout/Sidebar.tsx` |
+| | `src/components/prompt/PromptEditor.tsx` |
+
 ## v0.1.2 — 2025-06-10 Engineering Improvements (Test Coverage + Architecture)
 
 ### 新增
