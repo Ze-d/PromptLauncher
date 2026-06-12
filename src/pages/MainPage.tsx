@@ -1,9 +1,12 @@
 // MainPage.tsx — Prompt management page (thin orchestrator)
-// Layout: Sidebar | PromptList | PromptEditor
+// Layout: Sidebar | ResizeHandle | PromptList | ResizeHandle | PromptEditor
 import { useEffect, useState, useCallback } from "react";
 import { usePromptStore } from "../stores/promptStore";
+import { useSettingStore } from "../stores/settingStore";
 import { useGroupManager } from "../hooks/useGroupManager";
+import { useResizableColumns } from "../hooks/useResizableColumns";
 import Sidebar from "../components/layout/Sidebar";
+import ResizeHandle from "../components/layout/ResizeHandle";
 import FilterBar from "../components/layout/FilterBar";
 import PromptList from "../components/prompt/PromptList";
 import PromptEditor from "../components/prompt/PromptEditor";
@@ -12,13 +15,24 @@ import SettingsModal from "../components/settings/SettingsModal";
 export default function MainPage() {
   const { prompts, selectedPrompt, loadPrompts, selectPrompt, clearSelection } =
     usePromptStore();
+  const loadSettings = useSettingStore((s) => s.loadSettings);
   const gm = useGroupManager();
+  const {
+    containerRef,
+    sidebarWidth,
+    listWidth,
+    sidebarCollapsed,
+    resizeSidebar,
+    resizeList,
+    toggleSidebar,
+  } = useResizableColumns();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     loadPrompts();
-  }, [loadPrompts]);
+    loadSettings();
+  }, [loadPrompts, loadSettings]);
 
   // ── Filtered prompts ──
   const filteredPrompts = useCallback(() => {
@@ -40,12 +54,24 @@ export default function MainPage() {
   }, [prompts, gm.activeGroup])();
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Sidebar */}
-      <Sidebar gm={gm} onNewPrompt={clearSelection} />
+    <div ref={containerRef} className="flex h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Sidebar — dynamic width, toggleable collapse */}
+      <Sidebar
+        gm={gm}
+        onNewPrompt={clearSelection}
+        sidebarWidth={sidebarWidth}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={toggleSidebar}
+      />
 
-      {/* Prompt List */}
-      <main className="w-72 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shrink-0">
+      {/* Resize handle: sidebar ↔ list (hidden when collapsed) */}
+      <ResizeHandle onResize={resizeSidebar} disabled={sidebarCollapsed} />
+
+      {/* Prompt List — dynamic width */}
+      <main
+        className="border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col shrink-0"
+        style={{ width: listWidth }}
+      >
         <FilterBar
           prompts={prompts}
           onFilterMatch={(id) => selectPrompt(id)}
@@ -59,7 +85,10 @@ export default function MainPage() {
         />
       </main>
 
-      {/* Editor */}
+      {/* Resize handle: list ↔ editor */}
+      <ResizeHandle onResize={resizeList} />
+
+      {/* Editor — fills remaining space */}
       <section className="flex-1 bg-gray-50 dark:bg-gray-900 p-6 overflow-y-auto">
         <PromptEditor prompt={selectedPrompt} groups={gm.groups} />
       </section>

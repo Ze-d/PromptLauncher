@@ -1,6 +1,6 @@
 # TODOs
 
-> 最后更新：2025-06-10 | 全面审查结果
+> 最后更新：2026-06-11 | 全面审查结果
 
 ## P0 — 工程基础建设（有测试/质量风险）
 
@@ -18,6 +18,7 @@
 - [x] 收藏优先显示 — 完成
 - [x] 深色模式完善 — 完成
 - [x] 托盘图标修复 — 完成
+- [x] **窗口/面板自适应与拖拽调整** — 2026-06-11：三栏比例布局 + ResizeHandle 拖拽 + Sidebar 折叠 + Editor textarea 动态高度 + 比例持久化到 settings 表。详见 [flex-window-size.md](flex-window-size.md)
 - [ ] **QuickSearch 窗口尺寸可配置**：当前固定 720×420，应在设置页或 window 配置中支持调节
 - [ ] **组内 prompt 拖拽排序**：侧边栏 groups 和 prompts 列表支持拖拽重排序
 - [ ] **批量操作**：PromptList 支持多选（Shift/Ctrl+Click），批量删除、批量修改 group、批量导出
@@ -73,7 +74,7 @@
 - [ ] macOS / Linux 平台适配
 - [ ] 快捷键冲突时的用户体验优化（当前仅 warning，无 UI 提示）
 - [ ] 多个 monitor 场景下 quick-search 窗口弹出位置未优化（始终在默认屏幕中央）
-- [ ] `tauri.conf.json` 中 window 配置硬编码，不同分辨率体验不一致
+- [x] `tauri.conf.json` 中 window 配置硬编码，不同分辨率体验不一致 — 2026-06-11：三栏比例布局自适应窗口大小，添加 minWidth/minHeight 约束
 
 ## 改造工时估算参考
 

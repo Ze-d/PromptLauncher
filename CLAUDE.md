@@ -53,11 +53,12 @@ pnpm tauri build      # 打包
 | 文件 | 用途 |
 |------|------|
 | [CODEX.md](CODEX.md) | 项目参考手册（规范、命令、禁止事项） |
-| [docs/01-product-requirements.md](docs/01-product-requirements.md) | 产品需求 |
-| [docs/02-technical-architecture.md](docs/02-technical-architecture.md) | 技术架构 |
-| [docs/03-execution-plan.md](docs/03-execution-plan.md) | 执行计划 |
-| [docs/user-manual.md](docs/user-manual.md) | 使用手册 |
-| [docs/development-guide.md](docs/development-guide.md) | 开发指南 |
+| [docs/specs/01-product-requirements.md](docs/specs/01-product-requirements.md) | 产品需求 |
+| [docs/architecture/02-technical-architecture.md](docs/architecture/02-technical-architecture.md) | 技术架构 |
+| [docs/specs/03-execution-plan.md](docs/specs/03-execution-plan.md) | 执行计划 |
+| [docs/reference/user-manual.md](docs/reference/user-manual.md) | 使用手册 |
+| [docs/reference/development-guide.md](docs/reference/development-guide.md) | 开发指南 |
+| [docs/reference/changelog.md](docs/reference/changelog.md) | 变更日志 |
 | [docs/ai/coding-rules.md](docs/ai/coding-rules.md) | 编码规则 |
 | [docs/ai/context-map.md](docs/ai/context-map.md) | 关键文件索引 |
 | [docs/ai/review-checklist.md](docs/ai/review-checklist.md) | 审查清单 |
